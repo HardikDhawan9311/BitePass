@@ -1,4 +1,39 @@
-QR Service Integration Steps
+# BitePass
+
+## 1. Database Setup
+1. Ensure you have MySQL installed and running.
+2. Create a new empty database for the project using your preferred tool (e.g., MySQL terminal, phpMyAdmin, or DBeaver).
+
+## 2. Server (Backend) Setup
+1. Navigate to the server directory:
+   ```bash
+   cd server
+   ```
+2. Install the necessary Node.js dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file in the server directory and configure your database and environment variables.
+4. Start the backend server:
+   ```bash
+   npm start
+   ```
+
+## 3. Client (Frontend) Setup
+1. Open a new terminal and navigate to the client directory:
+   ```bash
+   cd client
+   ```
+2. Install the necessary dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+
+## 4. QR Service Integration Steps
 
 Navigate to the QR service folder
 Go into the qr-service/ folder in the project:
@@ -25,6 +60,7 @@ Install dependencies
 
 "pip install --upgrade pip
 pip install -r requirements.txt"
+
 --------------------------------------------------------------------------------
 
 Run the FastAPI server
@@ -35,6 +71,7 @@ Run the FastAPI server
 The service will run at http://localhost:8000
 
 Endpoint for QR generation: POST /generate_qr
+
 ----------------------------------------------------------------------------------
 Testing the QR service
 
