@@ -44,10 +44,13 @@ const initTables = async () => {
       email VARCHAR(100) NOT NULL,
       check_in BOOLEAN DEFAULT FALSE,
       meals_eaten INT DEFAULT 0,
-      token_id VARCHAR(20) UNIQUE NOT NULL,
-      qr_code LONGTEXT,
+      email_sent BOOLEAN DEFAULT FALSE,
+      token_id VARCHAR(21) UNIQUE NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE
+      FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
+      INDEX idx_participant_search (event_id, team_name, name),
+      INDEX idx_participant_event_email (event_id, email),
+      UNIQUE INDEX idx_participant_event_token (event_id, token_id)
     )`,
     // New table: tracks which specific meal each participant has eaten
     `CREATE TABLE IF NOT EXISTS meal_scans (
@@ -81,6 +84,51 @@ const initTables = async () => {
       console.log("✅ Database Migrations Verified!");
     } catch (err) {
       console.error("❌ Migration error:", err.message);
+    }
+
+    // Migration: Apply schema changes for production (drop qr_code, modify token_id, add indexes)
+    try {
+      const [columns] = await db.execute("DESCRIBE participants");
+      const columnNames = columns.map(c => c.Field);
+      
+      // 1. Drop qr_code if exists
+      if (columnNames.includes("qr_code")) {
+        await db.execute("ALTER TABLE participants DROP COLUMN qr_code");
+        console.log("✅ Migrated: Dropped qr_code column from participants");
+      }
+
+      // 1.5 Ensure token_id is large enough for NanoID (21 chars)
+      try {
+        await db.execute("ALTER TABLE participants MODIFY token_id VARCHAR(21) UNIQUE NOT NULL");
+      } catch (err) {
+        console.error("⚠️ Could not modify token_id length:", err.message);
+      }
+
+      // 1.7 Add email_sent column if missing
+      if (!columnNames.includes("email_sent")) {
+        await db.execute("ALTER TABLE participants ADD COLUMN email_sent BOOLEAN DEFAULT FALSE AFTER meals_eaten");
+        console.log("✅ Migrated: Added email_sent column to participants");
+      }
+
+      // 2. Safely add new indexes (Try-Catch ignores 'Duplicate Key Name' errors)
+      const indexesToCreate = [
+        "CREATE INDEX idx_participant_search ON participants(event_id, team_name, name)",
+        "CREATE INDEX idx_participant_event_email ON participants(event_id, email)",
+        "CREATE UNIQUE INDEX idx_participant_event_token ON participants(event_id, token_id)"
+      ];
+
+      for (const idxQuery of indexesToCreate) {
+        try {
+          await db.execute(idxQuery);
+          console.log(`✅ Index added successfully: ${idxQuery.split(' ')[2]}`);
+        } catch (idxErr) {
+          if (idxErr.code !== 'ER_DUP_KEYNAME') {
+             console.error(`⚠️ Notice (Index creation): ${idxErr.message}`);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("❌ Participant schema migration error:", err.message);
     }
 
     // Migration: add 'role' to users if missing

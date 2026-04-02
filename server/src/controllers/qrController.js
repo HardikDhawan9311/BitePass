@@ -29,17 +29,9 @@ const autoGenerateQrCodes = async (req, res) => {
     // 4️⃣ Send request to FastAPI server
     const response = await axios.post(QR_BATCH_URL, payload);
     const qrResults = response.data.results;
-
-    // 5️⃣ Store each QR code in DB
-    for (const qr of qrResults) {
-      await db.execute(
-        "UPDATE participants SET qr_code = ? WHERE token_id = ?",
-        [qr.qr_base64, qr.token_id]
-      );
-    }
-
+    
     res.status(200).json({
-      message: "✅ QR batch generated & stored successfully!",
+      message: "QR codes are now generated dynamically during email dispatch!",
       count: qrResults.length,
     });
   } catch (error) {

@@ -1,6 +1,9 @@
 const db = require("../config/db");
 const client = require("../config/mail");
 const PDFDocument = require("pdfkit");
+const axios = require("axios");
+
+const QR_SERVICE_URL = process.env.QR_SERVICE_URL || "http://localhost:8000";
 
 // Helper to format meals table for email
 const formatMealsHtml = (meals) => {
@@ -83,6 +86,86 @@ const generateQrPdf = (qrBase64, participantName, eventName, meals) => {
   });
 };
 
+const processEmailBatch = async (participants, eventName, meals) => {
+  const chunkSize = 20; // Send in batches to respect API rate limits
+  let sent = 0;
+
+  for (let i = 0; i < participants.length; i += chunkSize) {
+    const chunk = participants.slice(i, i + chunkSize);
+    const token_ids = chunk.map(p => p.token_id);
+    let qrMap = {};
+
+    try {
+      // Fetch QRs dynamically
+      const qrResponse = await axios.post(`${QR_SERVICE_URL}/generate_qr_batch`, {
+        token_ids,
+        error_correction: "M"
+      });
+      for (const res of qrResponse.data.results) {
+        qrMap[res.token_id] = res.qr_base64;
+      }
+    } catch (error) {
+      console.error(`❌ QR Service Error for chunk ${i}:`, error.message);
+      continue; // Skip chunk if QR generation completely fails
+    }
+
+    const emailPromises = chunk.map(async (participant) => {
+      const { id, name, email, token_id } = participant;
+      const qr_code = qrMap[token_id];
+      if (!qr_code) return; // Skip if QR couldn't be generated
+
+      try {
+        const pdfBase64 = await generateQrPdf(qr_code, name, eventName, meals);
+
+        const sendSmtpEmail = {
+          to: [{ email: email }],
+          sender: { email: process.env.EMAIL_USER, name: "Event Team" },
+          subject: `Your Meal Pass for ${eventName} 🎟️`,
+          htmlContent: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #2c3e50;">Hello ${name},</h2>
+              <p>We're excited to have you at <strong>${eventName}</strong>! Please find your personalized **Meal Pass (PDF)** attached to this email.</p>
+              
+              <div style="background-color: #f8f9fa; border-left: 5px solid #3498db; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>Note:</strong> Your unique QR code is inside the attached PDF. Please keep it ready for scanning at the designated food counters.</p>
+              </div>
+
+              <h3 style="border-bottom: 2px solid #3498db; padding-bottom: 5px; color: #2980b9;">📅 Event Meal Schedule</h3>
+              ${formatMealsHtml(meals)}
+
+              <p style="margin-top: 30px;">Enjoy the event!</p>
+              <p style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; font-size: 0.9em; color: #95a5a6;">
+                Best Regards,<br>
+                <strong>Team Food Coupons</strong>
+              </p>
+            </div>
+          `,
+          attachment: [{
+            content: pdfBase64,
+            name: "MealPass_QRCode.pdf"
+          }]
+        };
+
+        await client.transactionalEmails.sendTransacEmail(sendSmtpEmail);
+        await db.execute("UPDATE participants SET email_sent = TRUE WHERE id = ?", [id]);
+        console.log(`✅ Email sent to ${email}`);
+        sent++;
+      } catch (err) {
+        console.error(`❌ Failed to send email to ${email}:`, err.message);
+      }
+    });
+
+    await Promise.all(emailPromises);
+
+    // Pause briefly between chunks to avoid rate limiting
+    if (i + chunkSize < participants.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  return sent;
+};
+
 const sendEmailsToAllParticipants = async (req, res) => {
   try {
     const { event_id } = req.body;
@@ -90,74 +173,42 @@ const sendEmailsToAllParticipants = async (req, res) => {
       return res.status(400).json({ message: "event_id is required." });
     }
 
-    // Fetch Event Name
     const [[event]] = await db.execute("SELECT event_name FROM events WHERE event_id = ?", [event_id]);
     const eventName = event ? event.event_name : "the event";
 
-    // Fetch Meals
     const [meals] = await db.execute(
       "SELECT meal_name, start_time, end_time, DATE_FORMAT(date, '%d %b %Y') as formatted_date FROM event_meals WHERE event_id = ? ORDER BY date, start_time",
       [event_id]
     );
-    const mealsHtml = formatMealsHtml(meals);
 
     const [results] = await db.execute(
-      "SELECT name, email, qr_code FROM participants WHERE event_id = ?",
+      "SELECT id, name, email, token_id FROM participants WHERE event_id = ? AND email_sent = FALSE",
       [event_id]
     );
 
-    console.log(`📧 Sending emails to all ${results.length} participants for event_id: ${event_id}`);
-
-    let sent = 0;
-    for (const participant of results) {
-      const { name, email, qr_code } = participant;
-      if (!qr_code) continue;
-
-      const pdfBase64 = await generateQrPdf(qr_code, name, eventName, meals);
-
-      const sendSmtpEmail = {
-        to: [{ email: email }],
-        sender: { email: process.env.EMAIL_USER, name: "Event Team" },
-        subject: `Your Meal Pass for ${eventName} 🎟️`,
-        htmlContent: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #2c3e50;">Hello ${name},</h2>
-            <p>We're excited to have you at <strong>${eventName}</strong>! Please find your personalized **Meal Pass (PDF)** attached to this email.</p>
-            
-            <div style="background-color: #f8f9fa; border-left: 5px solid #3498db; padding: 15px; margin: 20px 0;">
-              <p style="margin: 0;"><strong>Note:</strong> Your unique QR code is inside the attached PDF. Please keep it ready for scanning at the designated food counters.</p>
-            </div>
-
-            <h3 style="border-bottom: 2px solid #3498db; padding-bottom: 5px; color: #2980b9;">📅 Event Meal Schedule</h3>
-            ${mealsHtml}
-
-            <p style="margin-top: 30px;">Enjoy the event!</p>
-            <p style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; font-size: 0.9em; color: #95a5a6;">
-              Best Regards,<br>
-              <strong>Team Food Coupons</strong>
-            </p>
-          </div>
-        `,
-        attachment: [{
-          content: pdfBase64,
-          name: "MealPass_QRCode.pdf"
-        }]
-      };
-
-      try {
-        await client.transactionalEmails.sendTransacEmail(sendSmtpEmail);
-        console.log(`✅ Email sent to ${email}`);
-        sent++;
-      } catch (error) {
-        console.log(`❌ Failed to send email to ${email}:`, error.message);
-      }
+    if (results.length === 0) {
+      return res.status(200).json({ 
+        message: "No new emails to send for this event!" 
+      });
     }
 
-    res.json({ message: `✅ Successfully processed ${sent} emails out of ${results.length}.` });
+    console.log(`📧 Starting email dispatch for ${results.length} participants (Event: ${event_id})`);
+
+    // Return early with 202 Accepted to prevent HTTP timeout on free tier platforms
+    res.status(202).json({ message: `✅ Email dispatch started for ${results.length} participants. This might take a few minutes.` });
+
+    // Process in background
+    processEmailBatch(results, eventName, meals).then(sent => {
+      console.log(`🎉 Finished sending ${sent} emails for event ${eventName}.`);
+    }).catch(err => {
+      console.error("❌ Background email processing critically failed:", err);
+    });
 
   } catch (error) {
-    console.error("❌ Error in sendEmailsToAllParticipants:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    console.error("❌ Error initiating email batch:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
   }
 };
 
@@ -169,19 +220,16 @@ const sendSingleEmail = async (req, res) => {
       return res.status(400).json({ message: "participant_id and event_id are required in the request body." });
     }
 
-    // Fetch Event Name
     const [[event]] = await db.execute("SELECT event_name FROM events WHERE event_id = ?", [event_id]);
     const eventName = event ? event.event_name : "the event";
 
-    // Fetch Meals
     const [meals] = await db.execute(
       "SELECT meal_name, start_time, end_time, DATE_FORMAT(date, '%d %b %Y') as formatted_date FROM event_meals WHERE event_id = ? ORDER BY date, start_time",
       [event_id]
     );
-    const mealsHtml = formatMealsHtml(meals);
 
     const [results] = await db.execute(
-      "SELECT name, email, qr_code FROM participants WHERE id = ?",
+      "SELECT name, email, token_id FROM participants WHERE id = ?",
       [participant_id]
     );
 
@@ -189,10 +237,22 @@ const sendSingleEmail = async (req, res) => {
       return res.status(404).json({ message: "Participant not found." });
     }
 
-    const { name, email, qr_code } = results[0];
+    const { name, email, token_id } = results[0];
+
+    // Generate QR code dynamically
+    let qr_code;
+    try {
+      const qrResponse = await axios.post(`${QR_SERVICE_URL}/generate_qr_batch`, {
+        token_ids: [token_id],
+        error_correction: "M"
+      });
+      qr_code = qrResponse.data.results[0]?.qr_base64;
+    } catch (err) {
+      return res.status(500).json({ message: "QR Service failed to generate the code.", error: err.message });
+    }
 
     if (!qr_code) {
-      return res.status(400).json({ message: "No QR code generated for this participant." });
+      return res.status(500).json({ message: "QR code could not be created dynamically." });
     }
 
     const pdfBase64 = await generateQrPdf(qr_code, name, eventName, meals);
@@ -211,7 +271,7 @@ const sendSingleEmail = async (req, res) => {
           </div>
 
           <h3 style="border-bottom: 2px solid #3498db; padding-bottom: 5px; color: #2980b9;">📅 Event Meal Schedule</h3>
-          ${mealsHtml}
+          ${formatMealsHtml(meals)}
 
           <p style="margin-top: 30px;">Enjoy the event!</p>
           <p style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; font-size: 0.9em; color: #95a5a6;">
@@ -227,6 +287,7 @@ const sendSingleEmail = async (req, res) => {
     };
 
     await client.transactionalEmails.sendTransacEmail(sendSmtpEmail);
+    await db.execute("UPDATE participants SET email_sent = TRUE WHERE id = ?", [participant_id]);
     console.log(`✅ Single Email with QR sent to ${email}`);
 
     res.json({ message: `✅ Email sent successfully to ${name}.` });

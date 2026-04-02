@@ -3,40 +3,7 @@ const db = require("../config/db");
 const path = require("path");
 const fs = require("fs");
 const axios = require("axios");
-
-// 🔹 Generate random 12-char token
-function generateTokenId(teamName, name, email) {
-  function getRandomChars(str, count) {
-    if (!str) return "";
-    let result = "";
-    for (let i = 0; i < count; i++) {
-      const index = Math.floor(Math.random() * str.length);
-      result += str[index].toUpperCase();
-    }
-    return result;
-  }
-
-  const part1 = getRandomChars(teamName, 3);
-  const part2 = getRandomChars(name, 3);
-  const part3 = getRandomChars(email, 3);
-  const random = Math.floor(100 + Math.random() * 900); // 3 random digits
-
-  return (part1 + part2 + part3 + random).substring(0, 12);
-}
-
-// 🔹 Ensure unique token_id
-async function getUniqueToken(teamName, name, email) {
-  let token;
-  let isUnique = false;
-
-  while (!isUnique) {
-    token = generateTokenId(teamName, name, email);
-    const [rows] = await db.execute("SELECT id FROM participants WHERE token_id = ?", [token]);
-    if (rows.length === 0) isUnique = true;
-  }
-
-  return token;
-}
+const { nanoid } = require("nanoid");
 
 // 🔹 Upload Excel, insert data, generate tokens
 const uploadExcel = async (req, res) => {
@@ -98,52 +65,64 @@ const uploadExcel = async (req, res) => {
     let duplicateCount = 0;
     let errorCount = 0;
 
-    // 🔹 Insert rows one by one
-    for (let [index, row] of sheetData.entries()) {
-      const { teamname, name, email, checkin } = row;
+    const connection = await db.getConnection();
+    await connection.beginTransaction();
 
-      if (!teamname || !name || !email || !checkin) {
-        console.warn(`⚠️ Missing fields in row ${index + 2}, skipping...`);
-        errorCount++;
-        continue;
-      }
+    try {
+      // 🔹 Insert rows one by one in a transaction
+      for (let [index, row] of sheetData.entries()) {
+        const { teamname, name, email, checkin } = row;
 
-      try {
-        const eid = parseInt(event_id);
-        const nameVal = name ? name.toString().trim() : "";
-        const teamVal = teamname ? teamname.toString().trim() : "";
-
-        // 🔹 More robust duplicate check
-        const [existing] = await db.execute(
-          "SELECT id FROM participants WHERE event_id = ? AND LOWER(TRIM(name)) = LOWER(?) AND LOWER(TRIM(team_name)) = LOWER(?)",
-          [eid, nameVal, teamVal]
-        );
-
-        if (existing.length > 0) {
-          console.log(`⚠️ Duplicate found for ${nameVal} in team ${teamVal}. Skipping...`);
-          duplicateCount++;
+        if (!teamname || !name || !email || !checkin) {
+          console.warn(`⚠️ Missing fields in row ${index + 2}, skipping...`);
+          errorCount++;
           continue;
         }
 
-        const token_id = await getUniqueToken(teamVal, nameVal, email);
-        const isCheckedIn = (checkin?.toString().toLowerCase().trim() === "yes") ? 1 : 0;
-        
-        console.log(`📝 Inserting row ${index + 2}: ${nameVal} (${email})`);
-        const [result] = await db.execute(
-          "INSERT INTO participants (event_id, team_name, name, email, check_in, token_id) VALUES (?, ?, ?, ?, ?, ?)",
-          [eid, teamVal, nameVal, email, isCheckedIn, token_id]
-        );
-        console.log(`✅ Row ${index + 2} affectRows: ${result.affectedRows}`);
+        try {
+          const eid = parseInt(event_id);
+          const nameVal = name ? name.toString().trim() : "";
+          const teamVal = teamname ? teamname.toString().trim() : "";
 
-        if (result.affectedRows > 0) {
-          insertCount++;
-        } else {
-          console.log(`⚠️ Duplicate skipped for ${teamname} - ${email}`);
+          // 🔹 More robust duplicate check
+          const [existing] = await connection.execute(
+            "SELECT id FROM participants WHERE event_id = ? AND LOWER(TRIM(name)) = LOWER(?) AND LOWER(TRIM(team_name)) = LOWER(?)",
+            [eid, nameVal, teamVal]
+          );
+
+          if (existing.length > 0) {
+            console.log(`⚠️ Duplicate found for ${nameVal} in team ${teamVal}. Skipping...`);
+            duplicateCount++;
+            continue;
+          }
+
+          const token_id = nanoid(21);
+          const isCheckedIn = (checkin?.toString().toLowerCase().trim() === "yes") ? 1 : 0;
+          
+          console.log(`📝 Inserting row ${index + 2}: ${nameVal} (${email})`);
+          const [result] = await connection.execute(
+            "INSERT INTO participants (event_id, team_name, name, email, check_in, token_id) VALUES (?, ?, ?, ?, ?, ?)",
+            [eid, teamVal, nameVal, email, isCheckedIn, token_id]
+          );
+
+          if (result.affectedRows > 0) {
+            insertCount++;
+            console.log(`✅ Row ${index + 2} affectRows: ${result.affectedRows}`);
+          } else {
+            console.log(`⚠️ Insertion failed for ${teamname} - ${email}`);
+          }
+        } catch (err) {
+          console.error(`❌ DB Error in row ${index + 2}:`, err);
+          errorCount++;
         }
-      } catch (err) {
-        console.error(`❌ DB Error in row ${index + 2}:`, err);
-        errorCount++;
       }
+      
+      await connection.commit();
+    } catch (transactionErr) {
+      await connection.rollback();
+      throw transactionErr;
+    } finally {
+      connection.release();
     }
 
     // ✅ Delete uploaded file
@@ -152,35 +131,6 @@ const uploadExcel = async (req, res) => {
       if (err) console.error("⚠️ Failed to delete uploaded file:", err.message);
       else console.log("🗑️ Uploaded file deleted:", absolutePath);
     });
-
-    // ✅ Auto-generate QR codes after successful upload
-    try {
-      const [tokenRows] = await db.execute(
-        "SELECT token_id FROM participants WHERE event_id = ?",
-        [event_id]
-      );
-      const token_ids = tokenRows.map((r) => r.token_id);
-
-      if (token_ids.length > 0) {
-        const response = await axios.post("http://localhost:8000/generate_qr_batch", {
-          token_ids,
-          error_correction: "M",
-        });
-        
-        const qrResults = response.data.results;
-
-        // 🔹 Store each QR code in DB
-        for (const qr of qrResults) {
-          await db.execute(
-            "UPDATE participants SET qr_code = ? WHERE token_id = ?",
-            [qr.qr_base64, qr.token_id]
-          );
-        }
-        console.log("✅ QR batch generated and stored automatically after Excel upload.");
-      }
-    } catch (err) {
-      console.error("⚠️ Failed to auto-generate and store QR batch:", err.message);
-    }
 
     // ✅ Final response
     let message = "Excel processed successfully";
@@ -376,7 +326,7 @@ const getTeamMembersByEvent = async (req, res) => {
     const { event_id, team_name } = req.params;
 
     const [results] = await db.execute(
-      "SELECT id, name, email, check_in, meals_eaten, token_id FROM participants WHERE event_id = ? AND LOWER(TRIM(team_name)) = LOWER(TRIM(?))",
+      "SELECT id, name, email, check_in, meals_eaten, email_sent, token_id FROM participants WHERE event_id = ? AND LOWER(TRIM(team_name)) = LOWER(TRIM(?))",
       [event_id, team_name]
     );
 
