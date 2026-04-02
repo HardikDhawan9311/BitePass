@@ -192,13 +192,13 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0F0C29] via-[#302B63] to-[#24243E]">
-        <div className="w-full max-w-md animate-slide-up bg-[#1A1625]/80 backdrop-blur-xl rounded-3xl p-8 border border-white/5 relative z-10 mx-4 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] transition-colors duration-300">
+        <div className="w-full max-w-md animate-slide-up bg-white dark:bg-[#1A1625]/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-100 dark:border-white/5 relative z-10 mx-4 shadow-2xl">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF] bg-clip-text text-transparent">
               {isForgotPassword ? "Reset Password" : "Welcome Back"}
             </h2>
-            <p className="text-gray-400 mt-2">
+            <p className="text-gray-500 dark:text-gray-400 mt-2">
               {isForgotPassword ? "Enter your username to receive a temporary password." : "Admin Gateway"}
             </p>
           </div>
@@ -206,25 +206,25 @@ const SignIn = () => {
           <form onSubmit={isForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-6">
           {/* Username */}
           <div className="relative">
-            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+            <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-300" />
             <input
               type="text"
               name="username"
               placeholder="Username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full pl-12 py-3 rounded-xl bg-white/15 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-[#7F5AF0]"
+              className="w-full pl-12 py-3 rounded-xl bg-gray-100 dark:bg-white/15 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 outline-none focus:ring-2 focus:ring-[#7F5AF0]"
             />
           </div>
 
           {!isForgotPassword && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2 ml-1">
                   Password
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[#7F5AF0] transition-colors">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#7F5AF0] transition-colors">
                     <FaLock size={20} />
                   </div>
                   <input
@@ -234,7 +234,7 @@ const SignIn = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full pl-12 pr-4 py-3.5 bg-[#0D0B14] border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-[#7F5AF0] focus:ring-1 focus:ring-[#7F5AF0] transition-all"
+                    className="w-full pl-12 pr-4 py-3.5 bg-gray-100 dark:bg-[#0D0B14] border border-gray-200 dark:border-white/10 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#7F5AF0] focus:ring-1 focus:ring-[#7F5AF0] transition-all"
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ const SignIn = () => {
                <button 
                  type="button" 
                  onClick={() => setIsForgotPassword(false)} 
-                 className="text-sm font-medium text-gray-400 hover:text-white"
+                 className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                >
                  Back to Sign In
                </button>
@@ -272,7 +272,7 @@ const SignIn = () => {
           )}
         </form>
 
-        <p className="text-center text-sm text-gray-300 mt-6">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-300 mt-6">
           Don’t have an account?{" "}
           <a href="/" className="text-[#C77DFF] font-semibold">
             Sign Up

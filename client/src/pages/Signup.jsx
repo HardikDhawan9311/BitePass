@@ -198,13 +198,13 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0F0C29] via-[#302B63] to-[#24243E]">
-      <div className="w-full max-w-md p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] transition-colors duration-300">
+      <div className="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-white/10 backdrop-blur-xl border border-gray-100 dark:border-white/20 shadow-2xl">
 
-        <h2 className="text-3xl font-bold text-white text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center">
           Create Account 🚀
         </h2>
-        <p className="text-gray-300 text-center mb-6">
+        <p className="text-gray-500 dark:text-gray-300 text-center mb-6">
           Join us today
         </p>
 
@@ -216,13 +216,13 @@ const SignUp = () => {
             { icon: FaLock, name: "password", placeholder: "Password", type: "password" },
           ].map((field, i) => (
             <div key={i} className="relative">
-              <field.icon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+              <field.icon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300" />
               <input
                 type={field.type || "text"}
                 name={field.name}
                 placeholder={field.placeholder}
                 onChange={handleChange}
-                className="w-full pl-12 py-3 rounded-xl bg-white/15 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-[#7F5AF0]"
+                className="w-full pl-12 py-3 rounded-xl bg-gray-100 dark:bg-white/15 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-300 outline-none focus:ring-2 focus:ring-[#7F5AF0]"
               />
             </div>
           ))}
@@ -232,7 +232,7 @@ const SignUp = () => {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-300 mt-6">
+        <p className="text-center text-sm text-gray-500 dark:text-gray-300 mt-6">
           Already have an account?{" "}
           <a href="/signin" className="text-[#C77DFF] font-semibold">
             Log in

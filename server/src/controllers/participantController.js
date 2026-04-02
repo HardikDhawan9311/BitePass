@@ -401,6 +401,99 @@ const toggleMealScan = async (req, res) => {
   }
 };
 
+// 🔹 Add Manual Participant
+const addManualParticipant = async (req, res) => {
+  try {
+    const { event_id, team_name, name, email, check_in } = req.body;
+    
+    if (!event_id || !team_name || !name || !email) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const nameVal = name.trim();
+    const teamVal = team_name.trim();
+
+    // Check duplicate
+    const [existing] = await db.execute(
+      "SELECT id FROM participants WHERE event_id = ? AND LOWER(TRIM(name)) = LOWER(?) AND LOWER(TRIM(team_name)) = LOWER(?)",
+      [event_id, nameVal, teamVal]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "Participant already exists in this team" });
+    }
+
+    const { nanoid } = require("nanoid");
+    const token_id = nanoid(21);
+    const isCheckedIn = (check_in?.toString().toLowerCase() === "yes" || check_in === 1 || check_in === true) ? 1 : 0;
+
+    const [result] = await db.execute(
+      "INSERT INTO participants (event_id, team_name, name, email, check_in, token_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [event_id, teamVal, nameVal, email.trim(), isCheckedIn, token_id]
+    );
+
+    res.json({ message: "Participant added successfully", id: result.insertId });
+  } catch (error) {
+    console.error("❌ addManualParticipant error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// 🔹 Delete Participant
+const deleteParticipant = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First delete meal_scans
+    await db.execute("DELETE FROM meal_scans WHERE participant_id = ?", [id]);
+    
+    // Delete the participant
+    const [result] = await db.execute("DELETE FROM participants WHERE id = ?", [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Participant not found" });
+    }
+    
+    res.json({ message: "Participant deleted successfully" });
+  } catch (error) {
+    console.error("❌ deleteParticipant error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// 🔹 Delete Team
+const deleteTeam = async (req, res) => {
+  try {
+    const { event_id, team_name } = req.params;
+
+    const [participants] = await db.execute(
+      "SELECT id FROM participants WHERE event_id = ? AND LOWER(TRIM(team_name)) = LOWER(TRIM(?))",
+      [event_id, team_name]
+    );
+
+    if (participants.length === 0) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    const participantIds = participants.map(p => p.id);
+
+    if (participantIds.length > 0) {
+      const placeholders = participantIds.map(() => "?").join(",");
+      await db.execute(`DELETE FROM meal_scans WHERE participant_id IN (${placeholders})`, participantIds);
+    }
+    
+    await db.execute(
+      "DELETE FROM participants WHERE event_id = ? AND LOWER(TRIM(team_name)) = LOWER(TRIM(?))",
+      [event_id, team_name]
+    );
+
+    res.json({ message: "Team deleted successfully" });
+  } catch (error) {
+    console.error("❌ deleteTeam error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = { 
   uploadExcel, 
   getParticipants, 
@@ -409,5 +502,8 @@ module.exports = {
   getParticipantById, 
   getTeamMembersByEvent,
   getParticipantMealStatus,
-  toggleMealScan
+  toggleMealScan,
+  addManualParticipant,
+  deleteParticipant,
+  deleteTeam
 };

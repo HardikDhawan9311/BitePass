@@ -52,4 +52,9 @@ router.get("/event/:event_id/team/:team_name", asyncHandler(require("../controll
 router.get("/:id/meals", asyncHandler(require("../controllers/participantController").getParticipantMealStatus));
 router.post("/:id/toggle-meal/:meal_id", asyncHandler(require("../controllers/participantController").toggleMealScan));
 
+// ✅ New routes for manual CRUD (Add/Delete)
+router.post("/add-manual", asyncHandler(require("../controllers/participantController").addManualParticipant));
+router.delete("/:id", asyncHandler(require("../controllers/participantController").deleteParticipant));
+router.delete("/event/:event_id/team/:team_name", asyncHandler(require("../controllers/participantController").deleteTeam));
+
 module.exports = router;
