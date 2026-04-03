@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../Components/NavBar";
 import Footer from "../Components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, CalendarDays, X, Calendar, Clock, ArrowRight, Trash2, Edit3, Plus, Type, Upload, FileText } from "lucide-react";
+import { Gift, CalendarDays, X, Calendar, Clock, ArrowRight, Trash2, Edit3, Plus, Type, Upload, FileText, Sun, Moon } from "lucide-react";
 import { toast } from "react-hot-toast";
 import api from "../utils/api";
 import { formatDate } from "../utils/formatters";
@@ -53,7 +53,7 @@ export default function Home() {
       toast.error("End date cannot be before start date");
       return;
     }
-    
+
     try {
       await api.post("/events/create", eventData);
       toast.success("Event created successfully! 🎊");
@@ -78,17 +78,16 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0F0C29] via-[#302B63] to-[#24243E] text-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] text-gray-900 dark:text-white transition-colors duration-500">
       <Navbar />
 
-      <main className="flex-1 px-6 py-14 flex flex-col items-center text-center">
-
+      <main className="flex-1 px-6 py-14 flex flex-col items-center text-center relative">
         {/* HERO */}
         <div className="transition-all duration-500 py-10">
-          <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 tracking-tight">
-            Hackathon Event <span className="text-[#C77DFF]">Management</span> 🎯
+          <h1 className="text-4xl sm:text-6xl font-extrabold mb-6 tracking-tight text-gray-900 dark:text-white">
+            Event <span className="text-[#C77DFF]">Management</span> 🎯
           </h1>
-          <p className="text-gray-300 max-w-xl mx-auto mb-10 text-lg leading-relaxed">
+          <p className="max-w-xl mx-auto mb-10 text-lg leading-relaxed text-gray-600 dark:text-gray-300 transition-colors">
             Create, schedule, and manage hackathon events seamlessly with our premium dashboard.
           </p>
 
@@ -110,13 +109,13 @@ export default function Home() {
           ].map((f, i) => (
             <div
               key={i}
-              className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-xl hover:bg-white/10 hover:border-[#7F5AF0]/30 transition-all duration-300"
+              className="group bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-[2rem] p-8 shadow-xl dark:hover:bg-white/10 hover:border-[#7F5AF0]/30 transition-all duration-300"
             >
               <div className="w-16 h-16 bg-[#7F5AF0]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <f.icon size={32} className="text-[#C77DFF]" />
+                <f.icon size={32} className="text-[#7F5AF0] dark:text-[#C77DFF]" />
               </div>
-              <h3 className="text-xl font-bold mb-3">{f.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">{f.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                 {f.desc}. Secure and reliable hackathon management at your fingertips.
               </p>
             </div>
@@ -144,11 +143,11 @@ export default function Home() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-xl bg-[#1A1625]/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-[0_0_50px_-12px_rgba(127,90,240,0.3)] overflow-hidden text-left"
+                className="relative w-full max-w-xl backdrop-blur-2xl rounded-[2.5rem] p-8 md:p-10 overflow-hidden text-left transition-colors duration-500 bg-white/90 dark:bg-[#1A1625]/80 border border-gray-100 dark:border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_50px_-12px_rgba(127,90,240,0.3)]"
               >
                 {/* Decorative background glow */}
                 <div className="absolute -top-24 -left-24 w-64 h-64 bg-[#7F5AF0]/20 blur-[100px]" />
-                
+
                 <div className="relative z-10">
                   <AnimatePresence>
                     {error && (
@@ -163,21 +162,21 @@ export default function Home() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  
+
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                      <h2 className="text-3xl font-bold flex items-center gap-3 transition-colors text-gray-900 dark:text-white">
                         <Plus className="p-2 bg-[#7F5AF0] rounded-xl text-white" size={40} />
                         Create New Event
                       </h2>
-                      <p className="text-gray-400 mt-1">Set up your next hackathon experience</p>
+                      <p className="mt-1 transition-colors text-gray-500 dark:text-gray-400">Set up your next hackathon experience</p>
                     </div>
                     <button
                       onClick={() => {
                         setShowEventForm(false);
                         setError("");
                       }}
-                      className="p-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-full transition-all"
+                      className="p-2 rounded-full transition-all bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                     >
                       <X size={24} />
                     </button>
@@ -185,7 +184,7 @@ export default function Home() {
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300 ml-1">Event Title</label>
+                      <label className="text-sm font-medium ml-1 transition-colors text-gray-700 dark:text-gray-300">Event Title</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#7F5AF0] transition-colors">
                           <Type size={18} />
@@ -195,7 +194,7 @@ export default function Home() {
                           placeholder="e.g. Winter Hack 2024"
                           value={eventData.event_name}
                           onChange={handleChange}
-                          className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:ring-2 focus:ring-[#7F5AF0] focus:border-transparent outline-none transition-all"
+                          className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-[#7F5AF0] focus:border-transparent outline-none transition-all bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:bg-white"
                           required
                         />
                       </div>
@@ -203,7 +202,7 @@ export default function Home() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300 ml-1">Start Date</label>
+                        <label className="text-sm font-medium ml-1 transition-colors text-gray-700 dark:text-gray-300">Start Date</label>
                         <div className="relative group">
                           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#7F5AF0] transition-colors">
                             <Calendar size={18} />
@@ -214,14 +213,14 @@ export default function Home() {
                             min={new Date().toISOString().split("T")[0]}
                             value={eventData.start_date}
                             onChange={handleChange}
-                            className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white focus:ring-2 focus:ring-[#7F5AF0] outline-none transition-all [color-scheme:dark]"
+                            className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-[#7F5AF0] outline-none transition-all bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:bg-white"
                             required
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300 ml-1">End Date</label>
+                        <label className="text-sm font-medium ml-1 transition-colors text-gray-700 dark:text-gray-300">End Date</label>
                         <div className="relative group">
                           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#7F5AF0] transition-colors">
                             <Calendar size={18} />
@@ -232,7 +231,7 @@ export default function Home() {
                             min={eventData.start_date || new Date().toISOString().split("T")[0]}
                             value={eventData.end_date}
                             onChange={handleChange}
-                            className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/5 border border-white/10 text-white focus:ring-2 focus:ring-[#7F5AF0] outline-none transition-all [color-scheme:dark]"
+                            className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-[#7F5AF0] outline-none transition-all bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark] focus:bg-white"
                             required
                           />
                         </div>
@@ -240,10 +239,10 @@ export default function Home() {
                     </div>
 
                     <div className="pt-4 flex gap-4">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setShowEventForm(false)}
-                        className="flex-1 py-4 px-6 rounded-2xl bg-white/5 border border-white/10 font-semibold text-gray-300 hover:bg-white/10 transition-all active:scale-95"
+                        className="flex-1 py-4 px-6 rounded-2xl border font-semibold transition-all active:scale-95 bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 hover:text-gray-900"
                       >
                         Cancel
                       </button>
@@ -263,19 +262,19 @@ export default function Home() {
         <div className="w-full max-w-6xl mt-24 mb-20 px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 text-left">
             <div>
-              <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 text-center md:text-left">
+              <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0F0C29] dark:from-white to-[#302B63] dark:to-gray-400 text-center md:text-left">
                 📅 Upcoming Events
               </h2>
-              <p className="text-gray-400 mt-2 text-center md:text-left">Manage and monitor your hackathon activities</p>
+              <p className="mt-2 text-center md:text-left text-gray-600 dark:text-gray-400 transition-colors">Manage and monitor your hackathon activities</p>
             </div>
-            <div className="h-1 flex-1 mx-8 bg-gradient-to-r from-transparent via-white/10 to-transparent hidden md:block" />
+            <div className="h-1 flex-1 mx-8 bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent hidden md:block" />
           </div>
 
           {events.length === 0 ? (
-            <div className="py-20 bg-white/5 rounded-3xl border border-white/10 flex flex-col items-center w-full">
-              <Calendar size={48} className="text-gray-600 mb-4" />
-              <p className="text-gray-400 text-lg">No events scheduled yet.</p>
-              <button 
+            <div className="py-20 rounded-3xl border flex flex-col items-center w-full transition-all duration-500 bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none">
+              <Calendar size={48} className="mb-4 text-gray-400 dark:text-gray-600" />
+              <p className="text-lg text-gray-500 dark:text-gray-400">No events scheduled yet.</p>
+              <button
                 onClick={() => setShowEventForm(true)}
                 className="mt-4 text-[#C77DFF] hover:underline"
               >
@@ -290,83 +289,95 @@ export default function Home() {
                   return status.label === "Live Now" || status.label === "Upcoming";
                 })
                 .map((e) => {
-                const status = getEventStatus(e.start_date, e.end_date);
-                return (
-                  <div
-                    key={e.event_id}
-                    className="group relative bg-[#1A1625]/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:border-[#7F5AF0]/50 hover:shadow-[#7F5AF0]/10 overflow-hidden text-left"
-                  >
-                    {/* Decorative glow */}
-                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#7F5AF0]/10 blur-[100px] group-hover:bg-[#7F5AF0]/20 transition-all duration-500" />
-                    
-                    <div className="relative z-10">
-                      <div className="flex justify-between items-start mb-6">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${status.color}`}>
-                          {status.label}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Link
-                            to={`/import/${e.event_id}`}
-                            className="p-2.5 bg-[#7F5AF0]/10 hover:bg-[#7F5AF0]/20 text-[#7F5AF0] rounded-xl transition-all duration-300 opacity-60 group-hover:opacity-100"
-                            title="Import Participants"
-                          >
-                            <Upload size={18} />
-                          </Link>
-                          <Link
-                            to={`/logs/${e.event_id}`}
-                            className="p-2.5 bg-[#C77DFF]/10 hover:bg-[#C77DFF]/20 text-[#C77DFF] rounded-xl transition-all duration-300 opacity-60 group-hover:opacity-100"
-                            title="View Logs"
-                          >
-                            <FileText size={18} />
-                          </Link>
-                          <button
-                            onClick={async (event) => {
-                              event.stopPropagation();
-                              if (window.confirm("Are you sure you want to delete this event? This will also delete all participants and meals.")) {
-                                const toastId = toast.loading("Deleting event...");
-                                try {
-                                  await api.delete(`/events/${e.event_id}`);
-                                  toast.success("Event deleted successfully", { id: toastId });
-                                  fetchEvents();
-                                } catch (err) {
-                                  toast.error(err.response?.data?.message || err.message, { id: toastId });
-                                }
-                              }
-                            }}
-                            className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all duration-300 opacity-60 group-hover:opacity-100"
-                            title="Delete Event"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                  const status = getEventStatus(e.start_date, e.end_date);
+                  return (
+                    <div
+                      key={e.event_id}
+                      className="group relative backdrop-blur-2xl border rounded-[2rem] p-8 transition-all duration-500 hover:-translate-y-2 overflow-hidden text-left bg-white dark:bg-[#1A1625]/60 border-gray-100 dark:border-white/10 shadow-xl dark:shadow-2xl hover:border-[#7F5AF0]/50 hover:shadow-2xl"
+                    >
+                      {/* Decorative glow */}
+                      <div className="absolute -top-24 -right-24 w-48 h-48 blur-[100px] transition-all duration-500 bg-[#7F5AF0]/5 dark:bg-[#7F5AF0]/10 group-hover:bg-[#7F5AF0]/10 dark:group-hover:bg-[#7F5AF0]/20" />
+
+                      <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${status.color}`}>
+                            {status.label}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={async (event) => {
+                                event.stopPropagation();
+                                toast((t) => (
+                                  <div className="flex flex-col gap-4 w-full">
+                                    <div className="flex items-start gap-3">
+                                      <div className="p-2.5 bg-red-500/20 rounded-full shrink-0">
+                                        <Trash2 className="text-red-400" size={24} />
+                                      </div>
+                                      <div>
+                                        <p className="font-bold text-lg text-gray-900 dark:text-white">Delete Event</p>
+                                        <p className="font-medium text-sm leading-snug mt-1 text-gray-500 dark:text-gray-400">
+                                          Delete all data for <span className="text-[#C77DFF] font-bold">{e.event_name}</span>?
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-3 mt-2">
+                                      <button onClick={() => toast.dismiss(t.id)} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10">
+                                        Cancel
+                                      </button>
+                                      <button
+                                        onClick={async () => {
+                                          toast.dismiss(t.id);
+                                          const toastId = toast.loading("Deleting event...");
+                                          try {
+                                            await api.delete(`/events/${e.event_id}`);
+                                            toast.success("Event deleted", { id: toastId });
+                                            fetchEvents();
+                                          } catch (err) {
+                                            toast.error(err.response?.data?.message || err.message, { id: toastId });
+                                          }
+                                        }}
+                                        className="flex-1 bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/20 text-white px-4 py-2 rounded-xl text-sm font-bold hover:scale-[1.02] transition-all"
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </div>
+                                ), { duration: Infinity, style: { borderRadius: '1.25rem', padding: '1.25rem', maxWidth: '400px' } });
+                              }}
+                              className="p-2.5 rounded-xl transition-all duration-300 opacity-60 group-hover:opacity-100 bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20"
+                              title="Delete Event"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </div>
+
+                        <h3 className="text-2xl font-bold mb-4 line-clamp-1 transition-colors text-gray-900 dark:text-white group-hover:text-[#7F5AF0] dark:group-hover:text-[#C77DFF]">
+                          {e.event_name}
+                        </h3>
+
+                        <div className="space-y-3 mb-8">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Clock size={16} className="mr-3 text-[#7F5AF0]" />
+                            <span>{formatDate(e.start_date)} - {formatDate(e.end_date)}</span>
+                          </div>
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <CalendarDays size={16} className="mr-3 text-[#7F5AF0]" />
+                            <span>{Math.ceil((new Date(e.end_date) - new Date(e.start_date)) / (1000 * 60 * 60 * 24)) + 1} Days Event</span>
+                          </div>
+                        </div>
+
+                        <Link
+                          to={`/schedule/${e.event_id}`}
+                          className="w-full py-4 px-6 rounded-2xl border flex items-center justify-between group/btn hover:bg-[#7F5AF0] hover:border-[#7F5AF0] transition-all duration-300 bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10"
+                        >
+                          <span className="font-semibold transition-colors group-hover/btn:text-white text-gray-600 dark:text-gray-300">Manage Event</span>
+                          <ArrowRight size={20} className="text-[#C77DFF] group-hover/btn:text-white transform group-hover/btn:translate-x-1 transition-all" />
+                        </Link>
                       </div>
-
-                      <h3 className="text-2xl font-bold text-white mb-4 line-clamp-1 group-hover:text-[#C77DFF] transition-colors">
-                        {e.event_name}
-                      </h3>
-
-                      <div className="space-y-3 mb-8">
-                        <div className="flex items-center text-gray-400 text-sm">
-                          <Clock size={16} className="mr-3 text-[#7F5AF0]" />
-                          <span>{formatDate(e.start_date)} - {formatDate(e.end_date)}</span>
-                        </div>
-                        <div className="flex items-center text-gray-400 text-sm">
-                          <CalendarDays size={16} className="mr-3 text-[#7F5AF0]" />
-                          <span>{Math.ceil((new Date(e.end_date) - new Date(e.start_date)) / (1000 * 60 * 60 * 24)) + 1} Days Event</span>
-                        </div>
-                      </div>
-
-                      <Link 
-                        to={`/schedule/${e.event_id}`}
-                        className="w-full py-4 px-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group/btn hover:bg-[#7F5AF0] hover:border-[#7F5AF0] transition-all duration-300"
-                      >
-                        <span className="font-semibold text-gray-300 group-hover/btn:text-white transition-colors">Manage Event</span>
-                        <ArrowRight size={20} className="text-[#C77DFF] group-hover/btn:text-white transform group-hover/btn:translate-x-1 transition-all" />
-                      </Link>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
         </div>

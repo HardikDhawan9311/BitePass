@@ -93,7 +93,7 @@ export default function ParticipantDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0F0C29] via-[#302B63] to-[#24243E] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C77DFF]"></div>
       </div>
     );
@@ -101,14 +101,14 @@ export default function ParticipantDetails() {
 
   if (!participant) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0F0C29] via-[#302B63] to-[#24243E] text-white">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] text-gray-900 dark:text-white">
         <Navbar />
         <main className="flex-1 flex flex-col items-center justify-center px-6">
           <XCircle size={64} className="text-red-500 mb-4" />
           <h1 className="text-3xl font-bold">Participant Not Found</h1>
           <button
             onClick={() => navigate(-1)}
-            className="mt-6 flex items-center gap-2 px-6 py-2 bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition"
+            className="mt-6 flex items-center gap-2 px-6 py-2 bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition text-gray-900 dark:text-white"
           >
             <ArrowLeft size={20} /> Go Back
           </button>
@@ -119,7 +119,7 @@ export default function ParticipantDetails() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#0F0C29] via-[#302B63] to-[#24243E] text-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] text-gray-900 dark:text-white transition-colors duration-300">
       <Navbar />
       
       <main className="flex-1 px-6 py-10 max-w-5xl mx-auto w-full">
@@ -127,17 +127,17 @@ export default function ParticipantDetails() {
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
-            className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition text-gray-400 hover:text-white"
+            className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-3xl font-bold">Participant Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Participant Profile</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: QR Code and Basic Info */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center">
+            <div className="bg-white dark:bg-white/10 backdrop-blur-xl border border-gray-100 dark:border-white/20 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center">
               <div className="w-48 h-48 bg-white rounded-2xl p-2 mb-6 shadow-glow overflow-hidden">
                 {participant.qr_code ? (
                   <img src={participant.qr_code} alt="QR Code" className="w-full h-full object-contain" />
@@ -148,10 +148,10 @@ export default function ParticipantDetails() {
                   </div>
                 )}
               </div>
-              <h2 className="text-2xl font-bold mb-1">{participant.name}</h2>
+              <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">{participant.name}</h2>
               <p className="text-[#C77DFF] font-medium mb-4">{participant.team_name}</p>
               
-              <div className="w-full h-px bg-white/10 mb-6"></div>
+              <div className="w-full h-px bg-gray-200 dark:bg-white/10 mb-6"></div>
               
               <button
                 onClick={handleSendMail}
@@ -177,12 +177,12 @@ export default function ParticipantDetails() {
             </div>
 
             {/* Status Section */}
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-xl space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+            <div className="bg-white dark:bg-white/10 backdrop-blur-xl border border-gray-100 dark:border-white/20 rounded-3xl p-6 shadow-xl space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
                 <Info size={20} className="text-[#C77DFF]" /> Status
               </h3>
-              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                <span className="text-gray-400">Meals Eaten</span>
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                <span className="text-gray-500 dark:text-gray-400">Meals Eaten</span>
                 <span className="text-[#C77DFF] font-bold text-xl">{participant.meals_eaten}</span>
               </div>
             </div>
@@ -190,8 +190,8 @@ export default function ParticipantDetails() {
 
           {/* Right Column: Detailed Info and Event Details */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-xl font-bold mb-8">Detailed Information</h3>
+            <div className="bg-white dark:bg-white/10 backdrop-blur-xl border border-gray-100 dark:border-white/20 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-xl font-bold mb-8 text-gray-900 dark:text-white">Detailed Information</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <InfoItem label="Full Name" value={participant.name} />
@@ -201,8 +201,8 @@ export default function ParticipantDetails() {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-xl">
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
+            <div className="bg-white dark:bg-white/10 backdrop-blur-xl border border-gray-100 dark:border-white/20 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
                 <Calendar className="text-[#C77DFF]" /> Event Participation
               </h3>
               
@@ -219,18 +219,18 @@ export default function ParticipantDetails() {
 
             {/* Team Members Section */}
             {teamMembers.length > 0 && (
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-xl">
-                <h3 className="text-xl font-bold mb-6">Other Team Members</h3>
+              <div className="bg-white dark:bg-white/10 backdrop-blur-xl border border-gray-100 dark:border-white/20 rounded-3xl p-8 shadow-xl">
+                <h3 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Other Team Members</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {teamMembers.map((member) => (
                     <div
                       key={member.id}
                       onClick={() => navigate(`/participant/${member.id}`)}
-                      className="p-4 bg-white/5 border border-white/10 rounded-2xl cursor-pointer hover:bg-white/10 transition flex items-center justify-between"
+                      className="p-4 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition flex items-center justify-between"
                     >
                       <div>
-                        <p className="font-bold text-lg">{member.name}</p>
-                        <p className="text-xs text-gray-400 font-medium">{member.email}</p>
+                        <p className="font-bold text-lg text-gray-900 dark:text-white">{member.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{member.email}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
@@ -261,13 +261,13 @@ export default function ParticipantDetails() {
                   {mealSchedule.map((meal) => (
                     <div 
                       key={meal.meal_id}
-                      className="group flex flex-col md:flex-row md:items-center justify-between p-5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/[0.08] transition-all duration-300"
+                      className="group flex flex-col md:flex-row md:items-center justify-between p-5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-all duration-300"
                     >
                       <div className="flex items-start gap-4 mb-4 md:mb-0">
                         <div className={`mt-1 h-3 w-3 rounded-full ${meal.is_scanned ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-gray-600'}`}></div>
                         <div>
-                          <p className="font-bold text-lg leading-tight mb-1">{meal.meal_name}</p>
-                          <div className="flex items-center gap-3 text-xs text-gray-400">
+                          <p className="font-bold text-lg leading-tight mb-1 text-gray-900 dark:text-white">{meal.meal_name}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                              <span className="flex items-center gap-1">
                                <Calendar size={12} className="text-[#C77DFF]" />
                                {formatDate(meal.date)}
@@ -310,8 +310,8 @@ export default function ParticipantDetails() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center p-10 bg-white/5 rounded-2xl border border-white/5">
-                  <p className="text-gray-400">No meals scheduled for this event.</p>
+                <div className="text-center p-10 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                  <p className="text-gray-500 dark:text-gray-400">No meals scheduled for this event.</p>
                 </div>
               )}
             </div>
@@ -327,8 +327,8 @@ export default function ParticipantDetails() {
 function InfoItem({ label, value }) {
   return (
     <div className="space-y-1">
-      <p className="text-gray-400 text-sm">{label}</p>
-      <p className="text-lg font-medium break-all">{value || "—"}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-sm">{label}</p>
+      <p className="text-lg font-medium break-all text-gray-900 dark:text-white">{value || "—"}</p>
     </div>
   );
 }

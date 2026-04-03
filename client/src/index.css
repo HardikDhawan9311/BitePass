@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ensure smooth transitions when theme switches */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  /* Prevent individual transition overrides from being ignored */
+  .transition-none, .transition-none * {
+    transition: none !important;
+  }
+}
+
 @layer utilities {
   .animate-gradient-xy {
     background-size: 400% 400%;
