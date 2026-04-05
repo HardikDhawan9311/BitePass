@@ -53,7 +53,7 @@ export default function Schedule() {
               key={event.event_id}
               className="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-purple-500 transition"
             >
-              <Link to={`/schedule/${event.event_id}`}>
+              <Link to={`/schedule/event/${event.event_id}`}>
                 <h2 className="text-2xl text-purple-400 font-semibold flex items-center gap-2 mb-4">
                   <Calendar size={22} />
                   {event.event_name}

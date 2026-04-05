@@ -368,7 +368,7 @@ export default function Home() {
                         </div>
 
                         <Link
-                          to={`/schedule/${e.event_id}`}
+                          to={`/schedule/event/${e.event_id}`}
                           className="w-full py-4 px-6 rounded-2xl border flex items-center justify-between group/btn hover:bg-[#7F5AF0] hover:border-[#7F5AF0] transition-all duration-300 bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10"
                         >
                           <span className="font-semibold transition-colors group-hover/btn:text-white text-gray-600 dark:text-gray-300">Manage Event</span>

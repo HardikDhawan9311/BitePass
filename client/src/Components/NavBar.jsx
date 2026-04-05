@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { LogOut, Home, Calendar, Upload, FileText, Menu, X, CalendarDays, User, Ticket, Sun, Moon } from "lucide-react";
+import { LogOut, Home, Calendar, Upload, FileText, Menu, X, CalendarDays, User, Ticket, Sun, Moon, Info } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { removeToken } from "../utils/auth";
+import { removeToken, decodeToken } from "../utils/auth";
 import ChangePasswordModal from "./ChangePasswordModal";
 import { useTheme } from "../context/ThemeContext";
+import { UserCheck, ShieldCheck, ArrowUpRight, User as UserIcon } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +14,9 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme, isDark } = useTheme();
+  const user = decodeToken();
+  const isAdmin = user?.role === "admin";
+  const isSuperAdmin = user?.role === "super admin";
 
   const handleLogout = () => {
     removeToken();
@@ -21,7 +25,8 @@ const Navbar = () => {
 
   const navItems = [
     { name: "Home", path: "/home", icon: Home },
-    { name: "Events", path: "/events", icon: CalendarDays }
+    { name: "Events", path: "/events", icon: CalendarDays },
+    { name: "About Us", path: "/about", icon: Info },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -82,7 +87,41 @@ const Navbar = () => {
                   </button>
                   
                   {showProfileMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1a1a2e]/95 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-xl shadow-2xl py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1a1a2e]/95 backdrop-blur-xl border border-gray-100 dark:border-white/10 rounded-xl shadow-2xl py-3 z-50">
+                      <div className="px-4 pb-3 mb-2 border-b border-gray-100 dark:border-white/5">
+                         <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Account Type</p>
+                         <div className="flex items-center gap-2">
+                            {isSuperAdmin ? (
+                               <>
+                                 <ShieldCheck size={16} className="text-[#C77DFF]" strokeWidth={3} />
+                                 <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF]">Super Admin</span>
+                               </>
+                            ) : isAdmin ? (
+                               <>
+                                 <ShieldCheck size={16} className="text-indigo-400" />
+                                 <span className="text-sm font-bold text-indigo-400">Administrator</span>
+                               </>
+                            ) : (
+                               <>
+                                 <UserIcon size={16} className="text-blue-400" />
+                                 <span className="text-sm font-bold text-blue-400">Member</span>
+                               </>
+                            )}
+                         </div>
+                      </div>
+                      {isSuperAdmin && (
+                        <Link
+                          to="/super-admin"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="w-full text-left flex items-center justify-between px-4 py-2 text-[10px] font-black text-[#C77DFF] uppercase tracking-[0.2em] hover:bg-[#7F5AF0]/5 transition group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck size={12} />
+                            Are you admin?
+                          </div>
+                          <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      )}
                       <button
                         onClick={() => { setShowProfileMenu(false); setPasswordModalOpen(true); }}
                         className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white transition"
@@ -126,6 +165,27 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-white/95 dark:bg-[#1a1a2e]/95 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 transition-colors duration-300">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <div className="px-3 py-3 mb-2 border-b border-gray-200 dark:border-white/10">
+               <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Logged in as</p>
+               <div className="flex items-center gap-2">
+                  {isSuperAdmin ? (
+                      <div className="flex items-center gap-2 bg-[#7F5AF0]/20 px-3 py-1 rounded-full border border-[#7F5AF0]/30 shadow-sm shadow-[#7F5AF0]/10">
+                        <ShieldCheck size={14} className="text-[#C77DFF]" strokeWidth={3} />
+                        <span className="text-xs font-black text-[#C77DFF] uppercase">Super Admin</span>
+                      </div>
+                  ) : isAdmin ? (
+                      <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                        <ShieldCheck size={14} className="text-indigo-400" />
+                        <span className="text-xs font-bold text-indigo-400">Administrator</span>
+                      </div>
+                  ) : (
+                      <div className="flex items-center gap-2 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                        <UserIcon size={14} className="text-blue-400" />
+                        <span className="text-xs font-bold text-blue-400">Member</span>
+                      </div>
+                  )}
+               </div>
+            </div>
             {navItems.map((item) => (
               <Link
                 key={item.name}
@@ -141,6 +201,19 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
+            {isSuperAdmin && (
+              <Link
+                to="/super-admin"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-bold transition-colors text-[#C77DFF] bg-[#7F5AF0]/5 border border-[#7F5AF0]/10"
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldCheck size={20} />
+                  Are you admin?
+                </div>
+                <ArrowUpRight size={16} />
+              </Link>
+            )}
             <button
               onClick={() => { setIsOpen(false); setPasswordModalOpen(true); }}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"

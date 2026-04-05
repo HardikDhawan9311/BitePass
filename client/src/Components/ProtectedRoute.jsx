@@ -11,9 +11,9 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
-  // 🚩 Check if the user is an admin
-  if (user?.role !== "admin") {
-    console.warn("🚫 Access denied: Not an administrator.");
+  // 🚩 Check if the user is authorized (Admin or Super Admin)
+  if (user?.role !== "admin" && user?.role !== "super admin") {
+    console.warn("🚫 Access denied: Unauthorized role.");
     localStorage.removeItem("token"); // Clear invalid/unauthorized token
     return <Navigate to="/signin" replace />;
   }

@@ -21,6 +21,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const participantRoutes= require("./src/routes/participantRoutes")
 const emailRoutes = require("./src/routes/emailRoutes");
 const eventRoutes = require("./src/routes/eventRoutes");
+const adminRoutes = require("./src/routes/adminRoutes");
 const initTables = require("./src/config/initTables");
 
 // Initialize Database Tables
@@ -32,6 +33,7 @@ app.use("/participants",participantRoutes)
 app.use("/emails", emailRoutes);
 app.use("/generation",emailRoutes)
 app.use("/events", eventRoutes);
+app.use("/admin", adminRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

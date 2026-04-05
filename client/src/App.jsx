@@ -9,6 +9,8 @@ import EventDetails from "./pages/EventDetails";
 import EditEvent from "./pages/EditEvent";
 import Events from "./pages/Events";
 import ParticipantDetails from "./pages/ParticipantDetails";
+import AboutUs from "./pages/AboutUs";
+import SuperAdmin from "./pages/SuperAdmin";
 import { getToken, decodeToken } from "./utils/auth";
 import { Toaster } from "react-hot-toast";
 
@@ -24,7 +26,7 @@ function App() {
           <Route
             path="/"
             element={
-              getToken() && decodeToken()?.role === "admin" ? (
+              getToken() && (decodeToken()?.role === "admin" || decodeToken()?.role === "super admin") ? (
                 <Navigate to="/home" replace />
               ) : (
                 <Signup />
@@ -34,7 +36,7 @@ function App() {
           <Route
             path="/signin"
             element={
-              getToken() && decodeToken()?.role === "admin" ? (
+              getToken() && (decodeToken()?.role === "admin" || decodeToken()?.role === "super admin") ? (
                 <Navigate to="/home" replace />
               ) : (
                 <SignIn />
@@ -61,7 +63,7 @@ function App() {
           />
 
           <Route
-            path="/schedule/:id"
+            path="/schedule/event/:id"
             element={
               <ProtectedRoute>
                 <EventDetails />
@@ -87,6 +89,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/super-admin"
+            element={
+              <ProtectedRoute>
+                <SuperAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/about" element={<AboutUs />} />
         </Routes>
       </Router>
     </ThemeProvider>

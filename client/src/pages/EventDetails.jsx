@@ -17,8 +17,8 @@ export default function EventDetails() {
   const [selectedDate, setSelectedDate] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Tabs: "schedule", "participants", "logs"
-  const [activeTab, setActiveTab] = useState("schedule");
+  // Tabs: "logs", "participants", "schedule"
+  const [activeTab, setActiveTab] = useState("logs");
 
   // Participants Tab (Import)
   const [file, setFile] = useState(null);
@@ -48,10 +48,27 @@ export default function EventDetails() {
   useEffect(() => {
     api.get(`/events/${id}`)
       .then((res) => {
-        setEvent(res.data.event);
+        const eventData = res.data.event;
+        setEvent(eventData);
         setMealDays(res.data.meals);
         setLoading(false);
-        if (res.data.event) setStatus(res.data.event.enabled);
+
+        if (eventData) {
+          setStatus(eventData.enabled);
+          
+          // Auto-select initial date for schedule
+          const start = eventData.start_date?.split("T")[0];
+          const end = eventData.end_date?.split("T")[0];
+          const today = new Date().toISOString().split("T")[0];
+
+          if (start) {
+            if (today >= start && today <= end) {
+              setSelectedDate(today);
+            } else {
+              setSelectedDate(start);
+            }
+          }
+        }
       })
       .catch((err) => {
         console.error("Fetch Error:", err);
@@ -439,9 +456,12 @@ export default function EventDetails() {
         {/* TABS */}
         <div className="flex items-center gap-2 border-b border-gray-200 dark:border-white/10 pb-4 overflow-x-auto custom-scrollbar">
           {[
-            { id: "schedule", label: "Schedule", icon: Calendar },
-            { id: "participants", label: "Participants", icon: Users },
+            
+            
             { id: "logs", label: "Live Logs", icon: Activity },
+            { id: "participants", label: "Participants", icon: Users },
+            { id: "schedule", label: "Schedule", icon: Calendar },
+            
           ].map((tab) => (
             <button
               key={tab.id}

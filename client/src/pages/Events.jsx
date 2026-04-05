@@ -58,7 +58,7 @@ export default function Events() {
         className="group relative bg-white dark:bg-[#1A1625]/60 backdrop-blur-2xl border border-gray-100 dark:border-white/10 rounded-[2rem] p-8 shadow-xl dark:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:border-[#7F5AF0]/50 hover:shadow-2xl overflow-hidden text-left"
       >
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#7F5AF0]/5 dark:bg-[#7F5AF0]/10 blur-[100px] group-hover:bg-[#7F5AF0]/10 dark:group-hover:bg-[#7F5AF0]/20 transition-all duration-500" />
-        
+
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6">
             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${status.color}`}>
@@ -102,8 +102,8 @@ export default function Events() {
             </div>
           </div>
 
-          <Link 
-            to={`/schedule/${e.event_id}`}
+          <Link
+            to={`/schedule/event/${e.event_id}`}
             className="w-full py-4 px-6 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 flex items-center justify-between group/btn hover:bg-[#7F5AF0] hover:border-[#7F5AF0] transition-all duration-300"
           >
             <span className="font-semibold text-gray-600 dark:text-gray-300 group-hover/btn:text-white transition-colors">Manage Event</span>
@@ -131,9 +131,9 @@ export default function Events() {
 
         {/* LOADING STATE */}
         {loading ? (
-             <div className="flex justify-center items-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5AF0]"></div>
-             </div>
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7F5AF0]"></div>
+          </div>
         ) : (
           <>
             {/* ACTIVE EVENTS */}
@@ -151,7 +151,7 @@ export default function Events() {
                   <Calendar size={48} className="text-gray-400 dark:text-gray-600 mb-4" />
                   <p className="text-gray-500 dark:text-gray-400 text-xl font-medium tracking-wide">No active events found.</p>
                   <Link to="/home" className="mt-4 text-[#C77DFF] hover:underline font-semibold flex items-center gap-2">
-                     Create an event <ArrowRight size={16} />
+                    Create an event <ArrowRight size={16} />
                   </Link>
                 </div>
               ) : (

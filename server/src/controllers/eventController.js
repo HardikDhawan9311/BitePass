@@ -412,6 +412,41 @@ exports.createEvent = async (req, res) => {
 
 
 /* =======================
+   UPDATE EVENT
+======================= */
+exports.updateEvent = async (req, res) => {
+  const { id } = req.params;
+  const { event_name, start_date, end_date } = req.body;
+
+  if (!event_name || !start_date || !end_date) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    // Check if another event has same name
+    const [existing] = await db.execute(
+      "SELECT event_id FROM events WHERE LOWER(event_name) = LOWER(?) AND event_id != ?",
+      [event_name, id]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ message: "An event with this name already exists" });
+    }
+
+    await db.execute(
+      `UPDATE events SET event_name = ?, start_date = ?, end_date = ? WHERE event_id = ?`,
+      [event_name, start_date, end_date, id]
+    );
+
+    res.status(200).json({ message: "Event updated successfully" });
+  } catch (error) {
+    console.error("Update Event Error:", error);
+    res.status(500).json({ message: "Failed to update event" });
+  }
+};
+
+
+/* =======================
    FETCH ALL EVENTS
 ======================= */
 exports.getEvents = async (req, res) => {

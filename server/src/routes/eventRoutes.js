@@ -5,6 +5,7 @@ const {
   getEvents, 
   getEventDetails, 
   toggleEvent, 
+  updateEvent,
   saveAllMeals,
   getEventMeals,
   deleteEvent
@@ -18,6 +19,9 @@ router.get("/", getEvents);
 
 // Get event details (includes meals)
 router.get("/:id", getEventDetails);
+
+// Update event details
+router.put("/:id", updateEvent);
 
 // Get only meals for event (optional API)
 router.get("/:id/meals", getEventMeals);   // ⭐ Add this

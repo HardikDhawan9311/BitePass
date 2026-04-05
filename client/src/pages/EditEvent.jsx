@@ -3,16 +3,16 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import Navbar from "../Components/NavBar";
 import Footer from "../Components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Calendar, 
-  Plus, 
-  Save, 
-  X, 
-  ArrowLeft, 
-  Utensils, 
-  Clock, 
-  ChevronRight, 
-  ClipboardList, 
+import {
+  Calendar,
+  Plus,
+  Save,
+  X,
+  ArrowLeft,
+  Utensils,
+  Clock,
+  ChevronRight,
+  ClipboardList,
   CheckCircle2,
   Trash2
 } from "lucide-react";
@@ -30,15 +30,40 @@ export default function EditEvent() {
   const [selectedDate, setSelectedDate] = useState("");
   const [tempMeals, setTempMeals] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [eventDetails, setEventDetails] = useState({
+    event_name: "",
+    start_date: "",
+    end_date: "",
+  });
 
   useEffect(() => {
     api.get(`/events/${id}`)
       .then((res) => {
-        setEvent(res.data.event);
+        const evt = res.data.event;
+        setEvent(evt);
         setMealDays(res.data.meals || []);
+        if (evt) {
+          setEventDetails({
+            event_name: evt.event_name,
+            start_date: normalizeDate(evt.start_date),
+            end_date: normalizeDate(evt.end_date),
+          });
+        }
       })
       .catch((err) => console.error("Fetch Error:", err));
   }, [id]);
+
+  const updateEventDetails = async () => {
+    const toastId = toast.loading("Updating event details...");
+    try {
+      await api.put(`/events/${id}`, eventDetails);
+      toast.success("Event details updated!", { id: toastId });
+      // Update local event state to reflect changes in UI
+      setEvent({ ...event, ...eventDetails });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update event", { id: toastId });
+    }
+  };
 
   const getDateRange = (s, e) => {
     const d = [];
@@ -56,18 +81,18 @@ export default function EditEvent() {
   const getMealStatus = (dateStr, startTime, endTime) => {
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
-    
+
     if (dateStr < todayStr) return { label: "Ended", color: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
     if (dateStr > todayStr) return { label: "Upcoming", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" };
-    
+
     const [startH, startM] = startTime.split(":").map(Number);
     const [endH, endM] = endTime.split(":").map(Number);
-    
+
     const start = new Date();
     start.setHours(startH, startM, 0);
     const end = new Date();
     end.setHours(endH, endM, 0);
-    
+
     if (now >= start && now <= end) return { label: "Live Now", color: "bg-green-500/20 text-green-400 border-green-500/30" };
     if (now < start) return { label: "Upcoming", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" };
     return { label: "Expired", color: "bg-red-500/20 text-red-400 border-red-500/30" };
@@ -101,9 +126,9 @@ export default function EditEvent() {
     setIsSaving(true);
 
     try {
-      await api.post(`/events/${id}/meals/saveAll`, { 
-        date: selectedDate, 
-        meals: combinedMeals 
+      await api.post(`/events/${id}/meals/saveAll`, {
+        date: selectedDate,
+        meals: combinedMeals
       });
 
       toast.success("Schedule synced successfully! 🍕");
@@ -125,11 +150,11 @@ export default function EditEvent() {
       if (!dayData) return;
 
       const updatedDayMeals = dayData.meals.filter(meal => meal.meal_id !== m.meal_id);
-      
+
       try {
-        await api.post(`/events/${id}/meals/saveAll`, { 
-          date: selectedDate, 
-          meals: updatedDayMeals 
+        await api.post(`/events/${id}/meals/saveAll`, {
+          date: selectedDate,
+          meals: updatedDayMeals
         });
 
         toast.success("Meal deleted successfully.");
@@ -147,7 +172,7 @@ export default function EditEvent() {
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0F0C29] dark:via-[#302B63] dark:to-[#24243E] text-gray-900 dark:text-white transition-colors duration-300">
       <Navbar />
 
-      <motion.main 
+      <motion.main
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -155,14 +180,14 @@ export default function EditEvent() {
       >
         {/* TOP NAV BAR */}
         <div className="flex justify-between items-center mb-12">
-          <button 
-            onClick={() => navigate("/")}
+          <button
+            onClick={() => navigate(`/schedule/event/${id}`)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white group"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
             Back to Dashboard
           </button>
-          
+
           <div className="flex items-center gap-3 text-sm font-medium text-[#C77DFF] bg-[#C77DFF]/10 px-4 py-2 rounded-full border border-[#C77DFF]/20">
             <CheckCircle2 size={16} />
             Auto-sync Enabled
@@ -182,13 +207,62 @@ export default function EditEvent() {
           </p>
         </div>
 
+        {/* EVENT DETAILS EDIT SECTION */}
+        <div className="mb-12 bg-white dark:bg-[#1A1625]/60 backdrop-blur-2xl border border-gray-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl dark:shadow-2xl">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 bg-[#7F5AF0]/10 rounded-2xl">
+              <ClipboardList className="text-[#7F5AF0]" size={24} />
+            </div>
+            <h2 className="text-2xl font-bold">Event Metadata</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-500">Event Name</label>
+              <input
+                type="text"
+                value={eventDetails.event_name}
+                onChange={(e) => setEventDetails({ ...eventDetails, event_name: e.target.value })}
+                className="w-full bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white px-5 py-3 rounded-xl border border-gray-200 dark:border-white/10 focus:border-[#7F5AF0] outline-none transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-500">Start Date</label>
+              <input
+                type="date"
+                value={eventDetails.start_date}
+                onChange={(e) => setEventDetails({ ...eventDetails, start_date: e.target.value })}
+                className="w-full bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white px-5 py-3 rounded-xl border border-gray-200 dark:border-white/10 focus:border-[#7F5AF0] outline-none transition-all [color-scheme:dark]"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-500">End Date</label>
+              <div className="flex gap-4">
+                <input
+                  type="date"
+                  value={eventDetails.end_date}
+                  onChange={(e) => setEventDetails({ ...eventDetails, end_date: e.target.value })}
+                  className="flex-1 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white px-5 py-3 rounded-xl border border-gray-200 dark:border-white/10 focus:border-[#7F5AF0] outline-none transition-all [color-scheme:dark]"
+                />
+                <button
+                  onClick={updateEventDetails}
+                  className="px-6 py-3 rounded-xl bg-[#7F5AF0] hover:bg-[#6b4ae0] text-white font-bold transition-all shadow-lg shadow-[#7F5AF0]/20 flex items-center gap-2 shrink-0"
+                >
+                  <Save size={18} />
+                  Update
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          
+
           {/* LEFT COLUMN: DATE SELECTOR & ADD MEALS */}
           <div className="lg:col-span-12 xl:col-span-5 space-y-8">
             <div className="bg-white dark:bg-[#1A1625]/60 backdrop-blur-2xl border border-gray-100 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl dark:shadow-2xl relative overflow-hidden group">
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#7F5AF0]/5 dark:bg-[#7F5AF0]/10 blur-[80px] group-hover:bg-[#7F5AF0]/10 dark:group-hover:bg-[#7F5AF0]/20 transition-all" />
-              
+
               <div className="relative z-10 space-y-8">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-bold">
@@ -217,7 +291,7 @@ export default function EditEvent() {
 
                 <AnimatePresence>
                   {selectedDate && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -245,7 +319,7 @@ export default function EditEvent() {
                             animate={{ opacity: 1, x: 0 }}
                             className="bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 p-5 rounded-2xl space-y-4 relative group/row hover:border-gray-200 dark:hover:border-white/20 transition-all"
                           >
-                            <button 
+                            <button
                               onClick={() => {
                                 const newMeals = [...tempMeals];
                                 newMeals.splice(i, 1);
@@ -367,7 +441,7 @@ export default function EditEvent() {
                             className="group relative flex justify-between items-center bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 px-8 py-6 rounded-[1.5rem] hover:bg-gray-100 dark:hover:bg-white/10 hover:border-[#7F5AF0]/30 transition-all duration-300 overflow-hidden"
                           >
                             <div className="absolute top-0 left-0 w-1 h-full bg-[#7F5AF0] focus-within:opacity-100 opacity-20 transition-opacity" />
-                            
+
                             <div className="flex items-center gap-6">
                               <div className="p-4 bg-gray-100 dark:bg-white/5 rounded-xl text-[#C77DFF] group-hover:scale-110 transition-transform">
                                 <Utensils size={24} />
@@ -386,7 +460,7 @@ export default function EditEvent() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-4">
                               <div className="px-3 py-1 rounded-lg bg-green-500/10 text-green-500 text-[10px] font-bold uppercase border border-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity">
                                 Synced

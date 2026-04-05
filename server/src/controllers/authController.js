@@ -224,9 +224,9 @@ const signin = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 🚩 NEW: Only admins are allowed to login
-    if (user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied. Only administrators can access this website." });
+    // 🚩 NEW: Only admins or super admins are allowed to login
+    if (user.role !== "admin" && user.role !== "super admin") {
+      return res.status(403).json({ message: "Access denied. Only authorized personnel can access this website." });
     }
 
     // 3️⃣ Generate JWT
