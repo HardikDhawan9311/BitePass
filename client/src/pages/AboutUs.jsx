@@ -1,5 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Github, ChevronDown, ChevronUp, Users, Zap, Code2, Heart, ExternalLink, Star, GitFork } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Users,
+  Globe,
+  Award,
+  Code,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  Shield,
+  Rocket,
+  Target,
+  Heart,
+  Github,
+  Linkedin,
+  ExternalLink,
+  Trophy,
+  Milestone,
+  CalendarDays,
+  Briefcase,
+  Star,
+  GitFork,
+  Code2,
+  Ticket
+} from "lucide-react";
+import Navbar from "../Components/NavBar";
+import Footer from "../Components/Footer";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -11,16 +37,16 @@ const contributors = [
     avatar: "https://github.com/HardikDhawan9311.png",
   },
   {
-    name: "Contributor 2",
-    githubId: "contributor2",
-    role: "Frontend Developer",
-    avatar: "https://github.com/contributor2.png",
+    name: "Harsh Gupta",
+    githubId: "RealHarshGupta",
+    role: "Developer",
+    avatar: "https://github.com/RealHarshGupta.png",
   },
   {
-    name: "Contributor 3",
-    githubId: "contributor3",
-    role: "Backend Developer",
-    avatar: "https://github.com/contributor3.png",
+    name: "Vanshika Batra",
+    githubId: "vanshikabatra200504-stack",
+    role: "Frontend Developer",
+    avatar: "https://github.com/vanshikabatra200504-stack.png",
   },
   {
     name: "Contributor 4",
@@ -57,25 +83,46 @@ const faqs = [
   },
 ];
 
-// ─── Animated counter ─────────────────────────────────────────────────────────
+// ─── Animated Counter ─────────────────────────────────────────────────────────
 
-function useCountUp(target, duration = 1800, start = false) {
-  const [count, setCount] = useState(0);
+const Counter = ({ from, to, suffix = "" }) => {
+  const [count, setCount] = useState(from);
+  const ref = useRef(null);
+  const started = useRef(false);
+
   useEffect(() => {
-    if (!start) return;
-    let startTime = null;
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [start, target, duration]);
-  return count;
-}
+    const el = ref.current;
+    if (!el) return;
 
-// ─── Intersection observer hook ───────────────────────────────────────────────
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const duration = 2000;
+          const startTime = performance.now();
+
+          const tick = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(2, -10 * progress); // easeOutExpo
+            setCount(Math.round(from + (to - from) * eased));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [from, to]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+};
+
+// ─── Intersection Observer Hook ──────────────────────────────────────────────
 
 function useInView(threshold = 0.15) {
   const ref = useRef(null);
@@ -91,23 +138,7 @@ function useInView(threshold = 0.15) {
   return [ref, inView];
 }
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-function StatCard({ value, label, suffix = "+", shouldCount }) {
-  const count = useCountUp(value, 1600, shouldCount);
-  return (
-    <div className="flex flex-col items-center">
-      <span className="text-4xl md:text-5xl font-black bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF] bg-clip-text text-transparent">
-        {count}{suffix}
-      </span>
-      <span className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium tracking-wide uppercase">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-// ─── Contributor Card ─────────────────────────────────────────────────────────
+// ─── Contributor Card ────────────────────────────────────────────────────────
 
 function ContributorCard({ contributor, index }) {
   const [ref, inView] = useInView(0.1);
@@ -124,10 +155,8 @@ function ContributorCard({ contributor, index }) {
       }}
       className="group relative bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-6 flex flex-col items-center gap-4 hover:shadow-xl hover:shadow-[#7F5AF0]/10 hover:-translate-y-1 transition-all duration-300"
     >
-      {/* Glow ring on hover */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#7F5AF0]/10 to-[#C77DFF]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
 
-      {/* Avatar */}
       <div className="relative">
         <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#7F5AF0]/30 group-hover:ring-[#C77DFF]/60 transition-all duration-300">
           {!imgError ? (
@@ -143,13 +172,11 @@ function ContributorCard({ contributor, index }) {
             </div>
           )}
         </div>
-        {/* Online dot */}
         <div className="absolute bottom-1 right-1 w-4 h-4 bg-[#7F5AF0] border-2 border-white dark:border-[#0d0b14] rounded-full flex items-center justify-center">
           <Github size={8} className="text-white" />
         </div>
       </div>
 
-      {/* Info */}
       <div className="text-center">
         <p className="font-bold text-gray-900 dark:text-white text-base">{contributor.name}</p>
         <p className="text-xs text-[#7F5AF0] font-semibold mt-0.5">{contributor.role}</p>
@@ -168,7 +195,7 @@ function ContributorCard({ contributor, index }) {
   );
 }
 
-// ─── FAQ Item ─────────────────────────────────────────────────────────────────
+// ─── FAQ Item ────────────────────────────────────────────────────────────────
 
 function FaqItem({ faq, index }) {
   const [open, setOpen] = useState(false);
@@ -210,166 +237,139 @@ function FaqItem({ faq, index }) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main Component ──────────────────────────────────────────────────────────
 
-export default function AboutUs() {
-  const [heroRef, heroInView] = useInView(0.1);
-  const [statsRef, statsInView] = useInView(0.2);
-  const [colabRef, colabInView] = useInView(0.1);
+const AboutUs = () => {
   const [contribRef, contribInView] = useInView(0.05);
   const [geekRef, geekInView] = useInView(0.1);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b14] transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0d0b14] text-gray-900 dark:text-white transition-colors duration-300 selection:bg-[#7F5AF0]/30 font-inter overflow-x-hidden">
+      <Navbar />
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section
-        ref={heroRef}
-        className="relative overflow-hidden pt-24 pb-20 px-4"
-      >
-        {/* Background blobs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#7F5AF0]/20 rounded-full blur-3xl -translate-y-1/2 animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#C77DFF]/15 rounded-full blur-3xl translate-y-1/2 animate-pulse" style={{ animationDelay: "1s" }} />
+      {/* 0. Collaboration Header */}
+      <div className="w-full bg-white/80 dark:bg-[#1A1625]/40 backdrop-blur-sm border-b border-gray-100 dark:border-white/5 py-12 px-6 relative z-50">
+        <div className="max-w-7xl mx-auto flex flex-col items-center space-y-8">
+          <div className="flex items-center justify-center gap-14 md:gap-24">
+            {/* Logo: BitePass */}
+            <div className="group cursor-pointer">
+              <div className="w-48 h-48 bg-gradient-to-br from-[#7F5AF0]/20 to-[#C77DFF]/20 backdrop-blur-xl rounded-full flex items-center justify-center shadow-[0_0_100px_rgba(127,90,240,0.25)] dark:shadow-[0_0_120px_rgba(127,90,240,0.4)] group-hover:shadow-[0_0_150px_rgba(127,90,240,0.6)] transition-all duration-700 transform group-hover:scale-110 relative">
+                {/* Glowing Aura */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#7F5AF0] to-[#C77DFF] opacity-20 dark:opacity-30 blur-[80px] transition-opacity duration-700 group-hover:opacity-40"></div>
+                
+                <div className="w-32 h-32 bg-gradient-to-br from-[#7F5AF0] to-[#C77DFF] rounded-full flex items-center justify-center shadow-2xl relative z-10 transition-transform duration-500 group-hover:rotate-6">
+                  <Ticket className="text-white transform -rotate-12 group-hover:rotate-0 transition-transform duration-500" size={64} />
+                </div>
+              </div>
+            </div>
 
-        <div className="relative max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div
-            style={{ opacity: heroInView ? 1 : 0, transform: heroInView ? "translateY(0)" : "translateY(-20px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#7F5AF0]/20 to-[#C77DFF]/20 border border-[#7F5AF0]/30 text-[#7F5AF0] dark:text-[#C77DFF] text-xs font-semibold uppercase tracking-widest mb-6"
-          >
-            <Heart size={12} /> Built with passion by GeekRoom × BitePass
+            <div className="text-[#C77DFF] dark:text-[#7F5AF0] font-black italic text-7xl opacity-30 select-none px-6">×</div>
+
+            {/* Logo: Geek Room */}
+            <div className="group cursor-pointer">
+              <div className="w-48 h-48 bg-white/10 dark:bg-white/5 backdrop-blur-xl rounded-full flex items-center justify-center shadow-[0_0_100px_rgba(0,0,0,0.2)] dark:shadow-[0_0_120px_rgba(255,255,255,0.15)] group-hover:shadow-[0_0_150px_rgba(255,255,255,0.3)] transition-all duration-700 transform group-hover:scale-110 relative overflow-visible">
+                {/* Glowing Aura */}
+                <div className="absolute inset-0 rounded-full bg-gray-400 dark:bg-white opacity-20 dark:opacity-10 blur-[80px] transition-opacity duration-700 group-hover:opacity-30"></div>
+                
+                <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl overflow-hidden relative z-10 border border-white/20 transition-transform duration-500 group-hover:-rotate-6">
+                  <img src="/assets/geekroom logo black.webp" alt="Geek Room Logo" className="w-full h-full object-contain p-4" />
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Headline */}
-          <h1
-            style={{ opacity: heroInView ? 1 : 0, transform: heroInView ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.7s 0.1s ease, transform 0.7s 0.1s ease" }}
-            className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 dark:text-white leading-tight mb-6"
-          >
-            Powering Events,{" "}
-            <span className="relative inline-block">
-              <span className="bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF] bg-clip-text text-transparent">
-                One Bite
-              </span>
-              {/* Underline */}
-              <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF] rounded-full" />
-            </span>{" "}
-            at a Time
-          </h1>
-
-          <p
-            style={{ opacity: heroInView ? 1 : 0, transform: heroInView ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.7s 0.2s ease, transform 0.7s 0.2s ease" }}
-            className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed"
-          >
-            BitePass is an open-source event meal management platform, crafted by the tech community at GeekRoom
-            to bring order, transparency and delight to hackathon meal experiences.
+          <p className="text-gray-500 dark:text-gray-300 text-lg md:text-xl font-medium tracking-wide text-center max-w-2xl">
+            A collaborative project built with innovation and community spirit.
           </p>
         </div>
-      </section>
+      </div>
 
-      {/* ── Stats ────────────────────────────────────────────────────────── */}
-      <section ref={statsRef} className="px-4 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-8 grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCard value={50}  label="Events Powered"  shouldCount={statsInView} />
-            <StatCard value={5000} label="Meals Managed" shouldCount={statsInView} />
-            <StatCard value={10}  label="Contributors"    shouldCount={statsInView} />
-            <StatCard value={1}   label="GeekRoom ❤️"  suffix="" shouldCount={statsInView} />
-          </div>
+      {/* 1. Hero Section */}
+      <section className="relative pt-24 pb-48 px-6 text-center overflow-hidden">
+        {/* Animated Gradient Background */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-[#7F5AF0]/10 via-transparent to-transparent opacity-50 blur-[120px] pointer-events-none animate-pulse"></div>
+
+        {/* Code-style background pattern */}
+        <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.03] pointer-events-none select-none overflow-hidden font-mono text-[10px] leading-tight">
+          {Array(40).fill(0).map((_, i) => (
+            <div key={i} className="whitespace-nowrap translate-x-[var(--x)]" style={{ '--x': `${Math.random() * 20}%` }}>
+              {`const bitepass = { type: 'innovation', collab: 'geekroom', users: '100k+', status: 'active' }; `.repeat(10)}
+            </div>
+          ))}
         </div>
-      </section>
 
-      {/* ── Collaboration section ─────────────────────────────────────────── */}
-      <section ref={colabRef} className="px-4 pb-24">
-        <div className="max-w-6xl mx-auto">
-          <div
-            style={{ opacity: colabInView ? 1 : 0, transform: colabInView ? "translateY(0)" : "translateY(32px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}
-            className="text-center mb-14"
-          >
-            <span className="text-xs font-bold uppercase tracking-widest text-[#7F5AF0] mb-3 block">The Collaboration</span>
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white">
-              BitePass <span className="text-gray-400 dark:text-gray-500">×</span> GeekRoom
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          className="relative z-10 max-w-5xl mx-auto space-y-10"
+        >
+          <h1 className="text-7xl md:text-9xl font-black tracking-tighter leading-[1] text-gray-900 dark:text-white">
+            About <br className="md:hidden" /> <span className="text-[#C77DFF] bg-clip-text text-transparent bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF]">BitePass</span>
+          </h1>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white opacity-90 max-w-3xl mx-auto leading-snug">
+              Revolutionizing the way users discover and access food experiences seamlessly.
             </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* BitePass card */}
-            <div
-              style={{ opacity: colabInView ? 1 : 0, transform: colabInView ? "translateX(0)" : "translateX(-40px)", transition: "opacity 0.7s 0.1s ease, transform 0.7s 0.1s ease" }}
-              className="relative group bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-8 overflow-hidden hover:shadow-2xl hover:shadow-[#7F5AF0]/10 transition-all duration-300"
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-[#7F5AF0]/20 to-[#C77DFF]/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#7F5AF0] to-[#C77DFF] rounded-xl flex items-center justify-center shadow-lg shadow-[#7F5AF0]/30 mb-6">
-                  <Zap size={26} className="text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">BitePass</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                  BitePass is a full-stack event meal management system. Organisers create events, add participants
-                  and configure meal schedules. Every participant receives a personalised QR code. At meal stations,
-                  coordinators scan QR codes to validate and record redemptions — ensuring no double-dips and a
-                  smooth, fast experience even at scale.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {["React", "Node.js", "MongoDB", "QR Codes", "JWT Auth"].map((tag) => (
-                    <span key={tag} className="px-3 py-1 text-xs font-medium bg-[#7F5AF0]/10 text-[#7F5AF0] dark:text-[#C77DFF] rounded-full">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* GeekRoom card */}
-            <div
-              style={{ opacity: colabInView ? 1 : 0, transform: colabInView ? "translateX(0)" : "translateX(40px)", transition: "opacity 0.7s 0.2s ease, transform 0.7s 0.2s ease" }}
-              className="relative group bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-8 overflow-hidden hover:shadow-2xl hover:shadow-[#C77DFF]/10 transition-all duration-300"
-            >
-              <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-[#C77DFF]/20 to-[#7F5AF0]/10 rounded-full -translate-y-1/2 -translate-x-1/2 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#C77DFF] to-[#7F5AF0] rounded-xl flex items-center justify-center shadow-lg shadow-[#C77DFF]/30 mb-6">
-                  <Code2 size={26} className="text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">GeekRoom</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                  GeekRoom is the premier technical community of Maharaja Agrasen Institute of Technology, New Delhi.
-                  Founded to bridge the gap between academia and industry, GeekRoom hosts hackathons, coding contests,
-                  open-source sprints and expert sessions. With hundreds of active members, it has become a launchpad
-                  for many real-world projects — BitePass being one of them.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {["MAIT, Delhi", "Hackathons", "Open Source", "Community", "Innovation"].map((tag) => (
-                    <span key={tag} className="px-3 py-1 text-xs font-medium bg-[#C77DFF]/10 text-[#C77DFF] dark:text-[#C77DFF] rounded-full">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Connector / collab detail */}
-          <div
-            style={{ opacity: colabInView ? 1 : 0, transform: colabInView ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.7s 0.35s ease, transform 0.7s 0.35s ease" }}
-            className="mt-8 bg-gradient-to-r from-[#7F5AF0]/10 via-[#C77DFF]/10 to-[#7F5AF0]/10 border border-[#7F5AF0]/20 rounded-2xl p-8 text-center"
-          >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[#7F5AF0]/40" />
-              <span className="text-2xl font-black bg-gradient-to-r from-[#7F5AF0] to-[#C77DFF] bg-clip-text text-transparent">×</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[#C77DFF]/40" />
-            </div>
-            <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
-              This collaboration is a testament to what communities can build when passion meets purpose.
-              GeekRoom provided the problem; BitePass is the solution — open-sourced and freely available for
-              anyone running events that deserve a seamless meal experience.
+            <p className="text-lg md:text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed font-light">
+              BitePass is a modern platform designed to simplify and enhance how people explore, access, and enjoy food services. Built with performance, usability, and innovation in mind, BitePass aims to deliver a seamless digital experience.
             </p>
           </div>
+        </motion.div>
+      </section>
+
+      {/* 2. About the Platform */}
+      <section className="max-w-7xl mx-auto px-6 py-32 border-t border-gray-100 dark:border-white/5 relative">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#C77DFF]/5 blur-[100px] pointer-events-none"></div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="space-y-8"
+          >
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900 dark:text-white">What is <span className="text-[#C77DFF]">BitePass</span>?</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-xl leading-relaxed">
+                BitePass is built to bridge the gap between users and food services through a fast, intuitive, and scalable platform. It focuses on delivering convenience, efficiency, and a smooth user experience using modern web technologies.
+              </p>
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+            {[
+              { icon: Zap, title: "Performance First", desc: "Built with speed-focused architecture for high-traffic events." },
+              { icon: Shield, title: "Secure Access", desc: "Reliable and encrypted data management for every user." },
+              { icon: Target, title: "Seamless Access", desc: "Intuitive workflows for a frictionless digital experience." },
+              { icon: Rocket, title: "Scalable Growth", desc: "Engineered to support communities of any size." }
+            ].map((card, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="bg-white dark:bg-white/[0.03] backdrop-blur-xl border border-gray-100 dark:border-white/10 p-8 rounded-[2.5rem] space-y-4 hover:shadow-lg dark:hover:bg-white/[0.05] hover:border-[#7F5AF0]/30 transition-all duration-300"
+              >
+                <div className="w-12 h-12 bg-[#7F5AF0]/10 rounded-xl flex items-center justify-center text-[#7F5AF0]">
+                  {card.icon && <card.icon size={28} />}
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white">{card.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{card.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Contributors ──────────────────────────────────────────────────── */}
-      <section ref={contribRef} className="px-4 pb-24 bg-gray-100/50 dark:bg-white/[0.02] py-20">
+      {/* 3. Contributors Section (Current Style) */}
+      <section ref={contribRef} className="px-4 pb-24 bg-gray-100/50 dark:bg-white/[0.02] py-20 border-t border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto">
           <div
             style={{ opacity: contribInView ? 1 : 0, transform: contribInView ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}
@@ -395,16 +395,15 @@ export default function AboutUs() {
             <p className="text-center text-gray-400">No contributors listed yet.</p>
           )}
 
-          {/* GitHub CTA */}
           <div
             style={{ opacity: contribInView ? 1 : 0, transition: "opacity 0.6s 0.4s ease" }}
             className="mt-12 text-center"
           >
             <a
-              href="https://github.com/HardikDhawan9311/BitePass"
+              href="https://github.com/GeekRoom/BitePass"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold text-sm rounded-xl hover:scale-105 hover:shadow-lg transition-all duration-300"
+              className="inline-flex items-center gap-2.5 px-6 py-3 bg-gray-900 dark:bg-white border border-gray-100 dark:border-white/10 text-white dark:text-gray-900 font-semibold text-sm rounded-xl hover:scale-105 hover:shadow-lg transition-all duration-300"
             >
               <Github size={18} />
               View on GitHub
@@ -414,8 +413,8 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ── GeekRoom Description ──────────────────────────────────────────── */}
-      <section ref={geekRef} className="px-4 pb-24 pt-16">
+      {/* 4. More Than a Community (Current Style) */}
+      <section ref={geekRef} className="px-4 pb-24 pt-16 border-t border-gray-100 dark:border-white/5">
         <div className="max-w-6xl mx-auto">
           <div
             style={{ opacity: geekInView ? 1 : 0, transform: geekInView ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.6s ease, transform 0.6s ease" }}
@@ -440,7 +439,7 @@ export default function AboutUs() {
                   transform: geekInView ? "translateY(0)" : "translateY(32px)",
                   transition: `opacity 0.6s ${i * 0.12}s ease, transform 0.6s ${i * 0.12}s ease`,
                 }}
-                className="group bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-7 hover:shadow-xl hover:shadow-[#7F5AF0]/10 hover:-translate-y-1 transition-all duration-300"
+                className="group bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl p-7 shadow-sm hover:shadow-xl hover:shadow-[#7F5AF0]/10 hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-[#7F5AF0]/20 to-[#C77DFF]/20 rounded-xl flex items-center justify-center mb-5 group-hover:from-[#7F5AF0] group-hover:to-[#C77DFF] transition-all duration-300">
                   <Icon size={22} className="text-[#7F5AF0] group-hover:text-white transition-colors duration-300" />
@@ -453,8 +452,8 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ── FAQ ──────────────────────────────────────────────────────────── */}
-      <section className="px-4 pb-28 bg-gray-100/50 dark:bg-white/[0.02] pt-20">
+      {/* 5. FAQ Section (Current Style) */}
+      <section className="px-4 pb-28 pt-20 border-t border-gray-100 dark:border-white/5 bg-gray-100/50 dark:bg-white/[0.01]">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
             <span className="text-xs font-bold uppercase tracking-widest text-[#7F5AF0] mb-3 block">FAQs</span>
@@ -470,6 +469,10 @@ export default function AboutUs() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
-}
+};
+
+export default AboutUs;
