@@ -13,6 +13,7 @@ import AboutUs from "./pages/AboutUs";
 import SuperAdmin from "./pages/SuperAdmin";
 import { getToken, decodeToken } from "./utils/auth";
 import { Toaster } from "react-hot-toast";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function App() {
   const token = getToken();
@@ -21,6 +22,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <Toaster position="top-center" reverseOrder={false} />
+        <SpeedInsights />
         <Routes>
           {/* Redirect if already logged in AND is admin */}
           <Route
