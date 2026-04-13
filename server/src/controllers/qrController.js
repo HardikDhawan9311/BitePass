@@ -17,8 +17,8 @@ const autoGenerateQrCodes = async (req, res) => {
       return res.status(404).json({ message: "No token IDs found" });
     }
 
-    // 2️⃣ FastAPI QR generator URL
-    const QR_BATCH_URL = "http://localhost:8000/generate_qr_batch";
+    // 2️⃣ FastAPI QR generator URL (configured via QR_SERVICE_URL in .env)
+    const QR_BATCH_URL = `${process.env.QR_SERVICE_URL || "http://localhost:8000"}/generate_qr_batch`;
 
     // 3️⃣ Prepare payload
     const payload = {
